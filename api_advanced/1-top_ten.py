@@ -7,7 +7,7 @@ import requests
 
 
 def top_ten(subreddit):
-    """Print titles of top 10 hot posts for a subreddit."""
+    """Prints the titles of the top 10 hot posts for a subreddit."""
     if subreddit is None or not isinstance(subreddit, str):
         print(None)
         return
@@ -16,19 +16,32 @@ def top_ten(subreddit):
     headers = {"User-Agent": "ALUProjectBot/1.0"}
     params = {"limit": 10}
 
-    resp = requests.get(url, headers=headers, params=params,
-                        allow_redirects=False)
-
-    if resp.status_code != 200:
+    try:
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            allow_redirects=False,
+            timeout=10
+        )
+    except Exception:
         print(None)
         return
 
-    posts = resp.json().get("data", {}).get("children", [])
+    # Reddit returns 302 or 404 for invalid subreddits
+    if response.status_code != 200:
+        print(None)
+        return
+
+    data = response.json().get("data")
+    if not data:
+        print(None)
+        return
+
+    posts = data.get("children", [])
     if not posts:
         print(None)
         return
 
     for post in posts:
-        title = post.get("data", {}).get("title")
-        if title:
-            print(title)
+        print(post.get("data", {}).get("title"))
